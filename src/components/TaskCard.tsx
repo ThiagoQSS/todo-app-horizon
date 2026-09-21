@@ -13,29 +13,28 @@ export type Task = {
 }
 
 type TaskCardProps = {
-	task: Task
+	task: Task,
+	onToggle: (id: number | string) => void
 }
 
-const TaskCard = ({ task }: TaskCardProps) => {
-	const [checked, setChecked] = useState(task.completed);
-
+const TaskCard = ({ task, onToggle }: TaskCardProps) => {
 	return (
 		<Animated.View
 			style={styles.container}
 			entering={FadeInDown.duration(150).springify()}
 			exiting={FadeOutUp.duration(100)}
 		>
-			<Pressable style={styles.checkboxContainer} onPress={() => setChecked(!checked)}>
+			<Pressable style={styles.checkboxContainer} onPress={() => onToggle(task.id)}>
 				<Checkbox
-					value={checked}
-					onValueChange={setChecked}
+					value={task.completed}
+					onValueChange={() => onToggle(task.id)}
 					style={{ borderRadius: 99, width: 20, height: 20 }}
 				/>
 			</Pressable>
 
 			<View style={styles.textContainer}>
 				<Text
-					style={{ textDecorationLine: checked ? 'line-through' : 'none', color: checked ? TextColors.secondary : TextColors.primary }}
+					style={[task.completed && styles.completedText]}
 					numberOfLines={3}
 				>
 					{task.title}
@@ -43,7 +42,7 @@ const TaskCard = ({ task }: TaskCardProps) => {
 			</View>
 
 			<View style={styles.labelContainer}>
-				<InfoLabel type={checked ? 'Concluída' : 'Pendente'} />
+				<InfoLabel type={task.completed ? 'Concluída' : 'Pendente'} />
 			</View>
 		</Animated.View>
 	)
@@ -73,5 +72,9 @@ const styles = StyleSheet.create({
 	textContainer: {
 		padding: 15,
 		flexShrink: 1,
+	},
+	completedText: {
+		textDecorationLine: 'line-through',
+		color: TextColors.secondary,
 	},
 });

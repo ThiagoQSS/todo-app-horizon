@@ -12,17 +12,29 @@ import TabSelector from '../components/TabSelector';
 import Animated, { LinearTransition } from 'react-native-reanimated';
 
 export default function index() {
-
 	const [tasks, setTasks] = useState(DATA);
 	const [selectedTab, setSelectedTab] = useState<"Todas" | "Pendentes" | "Concluídas">("Todas");
+	const [searchQuery, setSearchQuery] = useState('');
+
+	const handleToggleTask = (id: string | number) => {
+		setTasks(prevTasks =>
+			prevTasks.map(task =>
+				task.id === id ? { ...task, completed: !task.completed } : task
+			)
+		);
+	};
 
 	return (
 		<View style={styles.container}>
 			<StatusBar style='auto' />
+
 			<SafeAreaView style={styles.topBox} edges={['top']}>
 				<Text style={styles.title}>Minhas Tarefas</Text>
 				<Text style={styles.subtitle}>3 tarefas pendentes</Text>
-				<CustomSearchBar />
+				<CustomSearchBar
+					value={searchQuery}
+					onChangeText={setSearchQuery}
+				/>
 				<TabSelector
 					tabs={["Todas", "Pendentes", "Concluídas"]}
 					selectedTab={selectedTab}
@@ -32,9 +44,9 @@ export default function index() {
 
 			<View style={styles.flatlistContainer}>
 				<Animated.FlatList
-					data={filteredData(tasks, selectedTab)}
+					data={searchFilteredData(tabFilteredData(tasks, selectedTab), searchQuery)}
 					keyExtractor={(item) => `${item.id}`}
-					renderItem={({ item }) => <TaskCard task={item} />}
+					renderItem={({ item }) => <TaskCard task={item} onToggle={handleToggleTask} />}
 					contentContainerStyle={styles.flatlistContent}
 					itemLayoutAnimation={LinearTransition.springify()}
 				/>
@@ -47,11 +59,16 @@ export default function index() {
 	);
 }
 
-const filteredData = (data: Task[], selectedTab: "Todas" | "Pendentes" | "Concluídas") => {
+const tabFilteredData = (data: Task[], selectedTab: "Todas" | "Pendentes" | "Concluídas") => {
 	if (selectedTab === "Todas") return data;
 	if (selectedTab === "Pendentes") return data.filter(task => !task.completed);
 	if (selectedTab === "Concluídas") return data.filter(task => task.completed);
 	return data;
+}
+
+const searchFilteredData = (data: Task[], searchQuery: string) => {
+	if (searchQuery === '') return data;
+	return data.filter(task => task.title.toLowerCase().includes(searchQuery.toLowerCase()));
 }
 
 const styles = StyleSheet.create({
