@@ -1,5 +1,5 @@
-import { StyleSheet, Text, View } from 'react-native'
-import { Colors } from '../constants/Colors'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Colors, TextColors } from '../constants/Colors'
 import { Checkbox } from 'expo-checkbox';
 import InfoLabel from './InfoLabel';
 import { useState } from 'react';
@@ -25,16 +25,24 @@ const TaskCard = ({ task }: TaskCardProps) => {
 			entering={FadeInDown.duration(150).springify()}
 			exiting={FadeOutUp.duration(100)}
 		>
-			<View style={styles.innerRow}>
+			<Pressable style={styles.checkboxContainer} onPress={() => setChecked(!checked)}>
 				<Checkbox
 					value={checked}
 					onValueChange={setChecked}
 					style={{ borderRadius: 99, width: 20, height: 20 }}
 				/>
-				<Text style={{ textDecorationLine: checked ? 'line-through' : 'none', flexShrink: 1 }}>{task.title}</Text>
+			</Pressable>
+
+			<View style={styles.textContainer}>
+				<Text
+					style={{ textDecorationLine: checked ? 'line-through' : 'none', color: checked ? TextColors.secondary : TextColors.primary }}
+					numberOfLines={3}
+				>
+					{task.title}
+				</Text>
 			</View>
 
-			<View>
+			<View style={styles.labelContainer}>
 				<InfoLabel type={checked ? 'Concluída' : 'Pendente'} />
 			</View>
 		</Animated.View>
@@ -52,15 +60,18 @@ const styles = StyleSheet.create({
 		elevation: 3,
 		borderWidth: 1,
 		borderColor: Colors.grayLight,
-		padding: 15,
 		flexDirection: 'row',
-		justifyContent: 'space-between',
 	},
-	innerRow: {
-		flexDirection: 'row',
+	checkboxContainer: {
+		padding: 15,
+	},
+	labelContainer: {
+		padding: 15,
+		flexGrow: 1,
+		alignItems: 'flex-end'
+	},
+	textContainer: {
+		padding: 15,
 		flexShrink: 1,
-		gap: 10,
-		paddingRight: 5,
-		// backgroundColor: 'pink'
-	}
+	},
 });
