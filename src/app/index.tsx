@@ -1,28 +1,23 @@
 import { StatusBar } from 'expo-status-bar';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, TextColors } from '../constants/Colors';
 import { pageStyles } from '../constants/commomStyles';
 import CustomSearchBar from '../components/CustomSearchBar';
 import TaskCard, { Task } from '../components/TaskCard';
-import { DATA } from '../utils/tempData';
 import { useState } from 'react';
 import FloatingActionButton from '../components/FloatingActionButton';
 import TabSelector from '../components/TabSelector';
 import Animated, { LinearTransition } from 'react-native-reanimated';
+import { useRouter } from 'expo-router';
+import { useTasks } from '../hooks/useTasks';
 
 export default function index() {
-	const [tasks, setTasks] = useState(DATA);
 	const [selectedTab, setSelectedTab] = useState<"Todas" | "Pendentes" | "Concluídas">("Todas");
 	const [searchQuery, setSearchQuery] = useState('');
+	const router = useRouter();
 
-	const handleToggleTask = (id: string | number) => {
-		setTasks(prevTasks =>
-			prevTasks.map(task =>
-				task.id === id ? { ...task, completed: !task.completed } : task
-			)
-		);
-	};
+	const { tasks, toggleTask } = useTasks();
 
 	return (
 		<View style={styles.container}>
@@ -30,7 +25,7 @@ export default function index() {
 
 			<SafeAreaView style={styles.topBox} edges={['top']}>
 				<Text style={styles.title}>Minhas Tarefas</Text>
-				<Text style={styles.subtitle}>3 tarefas pendentes</Text>
+				<Text style={styles.subtitle}>{tasks.filter((task) => !task.completed).length} tarefas pendentes</Text>
 				<CustomSearchBar
 					value={searchQuery}
 					onChangeText={setSearchQuery}
@@ -46,14 +41,14 @@ export default function index() {
 				<Animated.FlatList
 					data={searchFilteredData(tabFilteredData(tasks, selectedTab), searchQuery)}
 					keyExtractor={(item) => `${item.id}`}
-					renderItem={({ item }) => <TaskCard task={item} onToggle={handleToggleTask} />}
+					renderItem={({ item }) => <TaskCard task={item} onToggle={toggleTask} />}
 					contentContainerStyle={styles.flatlistContent}
 					itemLayoutAnimation={LinearTransition.springify()}
 				/>
 			</View>
 
 			<SafeAreaView edges={['bottom']} style={styles.floatingButtonContainer}>
-				<FloatingActionButton onPress={() => { }} />
+				<FloatingActionButton onPress={() => router.navigate('/NovaTarefa')} />
 			</SafeAreaView>
 		</View>
 	);
@@ -82,6 +77,7 @@ const styles = StyleSheet.create({
 		gap: 10,
 		borderBottomWidth: 1,
 		borderBottomColor: Colors.grayLight,
+		paddingBottom: 5
 	},
 	title: {
 		fontSize: 30,
@@ -94,7 +90,8 @@ const styles = StyleSheet.create({
 	},
 	flatlistContent: {
 		...pageStyles.hpadding,
-		paddingVertical: 15,
+		paddingTop: 15,
+		paddingBottom: 100,
 		gap: 10,
 	},
 	floatingButtonContainer: {
