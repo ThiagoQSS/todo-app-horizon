@@ -4,7 +4,7 @@ import { Checkbox } from 'expo-checkbox';
 import InfoLabel from './InfoLabel';
 import Animated, { FadeInDown, FadeOutUp, interpolateColor, useAnimatedStyle, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
-import { useEffect, useRef } from 'react';
+import { memo, useEffect, useRef } from 'react';
 
 export type Task = {
 	id: number,
@@ -18,24 +18,26 @@ type TaskCardProps = {
 	isNew: boolean
 }
 
-const TaskCard = ({ task, onToggle, isNew }: TaskCardProps) => {
+const TaskCardComponent = ({ task, onToggle, isNew }: TaskCardProps) => {
 	const router = useRouter();
 	const onPress = () => router.navigate({ pathname: '/Detalhes', params: { id: task.id } });
-	const scale = useSharedValue(isNew ? 0.95 : 1);
-	const borderProgress = useSharedValue(isNew ? 0 : 1);
-	const hasAnimated = useRef(false);
+	const scale = useSharedValue(1);
+	const borderProgress = useSharedValue(1);
 
 	useEffect(() => {
-		if (!isNew || hasAnimated.current) return;
+		if (isNew) {
+			// 1. Reseta para o ponto de partida do destaque
+			scale.value = 0.95;
+			borderProgress.value = 0;
 
-		hasAnimated.current = true;
+			// 2. Executa as animações
+			scale.value = withSequence(
+				withTiming(1.15, { duration: 150 }),
+				withTiming(1, { duration: 150 })
+			);
 
-		scale.value = withSequence(
-			withTiming(1.15, { duration: 150 }),
-			withTiming(1, { duration: 150 })
-		);
-		borderProgress.value = withTiming(1, { duration: 1200 });
-
+			borderProgress.value = withTiming(1, { duration: 1200 });
+		}
 	}, [isNew]);
 
 	const animatedStyle = useAnimatedStyle(() => ({
@@ -49,8 +51,6 @@ const TaskCard = ({ task, onToggle, isNew }: TaskCardProps) => {
 
 	return (
 		<Animated.View
-			entering={FadeInDown.duration(150).springify()}
-			exiting={FadeOutUp.duration(100)}
 			style={styles.outerContainer}
 		>
 			<Animated.View
@@ -91,6 +91,15 @@ const TaskCard = ({ task, onToggle, isNew }: TaskCardProps) => {
 		</Animated.View>
 	)
 }
+
+const TaskCard = memo(TaskCardComponent, (prevProps, nextProps) => {
+	return (
+		prevProps.task.id === nextProps.task.id &&
+		prevProps.task.completed === nextProps.task.completed &&
+		prevProps.task.title === nextProps.task.title &&
+		prevProps.isNew === nextProps.isNew
+	);
+});
 
 export default TaskCard
 

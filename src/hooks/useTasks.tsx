@@ -1,59 +1,177 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Task } from '../components/TaskCard';
-import { DATA } from '../utils/tempData';
+import { checkIfSeeded, markAsSeeded } from '../database/tasksRepository';
+import { deleteTaskInDb, getAllTasksInDb, initializeDatabase, insertTaskBatchInDb, insertTaskInDb, TaskRow, updateTaskInDb } from '../database/db';
+import {
+	fetchInitialTasks,
+	createApiTask,
+	updateApiTask,
+	deleteApiTask,
+} from '../services/tasksService';
+import { AppToast } from '../utils/ToastManager';
 
 type TasksContextType = {
 	tasks: Task[];
+	databaseLoading: boolean;
+	setDatabaseLoading: (loading: boolean) => void;
+	getTasks: () => Promise<Task[]>;
 	newestTaskId: number | null;
 	toggleTask: (id: number) => void;
 	addTask: (task: Task) => void;
 	updateTask: (updatedTask: Task) => void;
 	deleteTask: (id: number) => void;
+	fetchInitialData: () => Promise<Task[]>;
 };
 
 const TasksContext = createContext<TasksContextType | undefined>(undefined);
 
 export const TasksProvider = ({ children }: { children: React.ReactNode }) => {
-	const [tasks, setTasks] = useState<Task[]>(DATA);
+	const [tasks, setTasks] = useState<Task[]>([]);
 	const [newestTaskId, setNewestTaskId] = useState<number | null>(null);
+	const [databaseLoading, setDatabaseLoading] = useState(true);
 
-	const toggleTask = async (id: number | string) => {
-		setTasks((prev) =>
-			prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t))
-		);
+	useEffect(() => {
+		const initialize = async () => {
+			console.log("Initializing database...");
+			await initializeDatabase();
+			await fetchInitialData();
+			setDatabaseLoading(false);
+			console.log("Database initialized.");
+		};
 
-		// TODO: Atualizar no banco de dados local
-		// await db.runAsync('UPDATE tasks SET completed = ? WHERE id = ?', ...);
-	};
+		initialize();
+	}, []);
 
-	const addTask = async (task: Task) => {
-		setTasks((prev) => [...prev, task]);
-		setNewestTaskId(task.id);
-		setTimeout(() => setNewestTaskId(null), 1500);
-		// TODO: Atualizar no banco de dados local
-		// await db.runAsync('INSERT INTO tasks (id, title, date, completed) VALUES (?, ?, ?, ?)', ...);
+	const fetchInitialData = async (): Promise<Task[]> => {
+		const has_seeded = await checkIfSeeded();
+		if (has_seeded) {
+			const tasks: Task[] = await getAllTasksInDb();
+			setTasks(tasks);
+			return tasks;
+		} else {
+			const tasks = await fetchInitialTasks();
+			if (tasks.length > 0) {
+				setTasks(tasks);
+				await insertTaskBatchInDb(tasks);
+				await markAsSeeded();
+			} else {
+				AppToast.offlineWarning();
+			}
+			return tasks;
+		};
 	}
 
-	const updateTask = async (updatedTask: Task) => {
+	const getTasks = async (): Promise<Task[]> => {
+		const localTasks = await getAllTasksInDb();
+		setTasks(localTasks);
+		return localTasks;
+	};
+
+	const toggleTask = async (id: number) => {
+		const currentTask = tasks.find((t) => t.id === id);
+		if (!currentTask) return;
+
+		const nextCompletedState = !currentTask.completed;
+		// 1. Atualização Otimista na UI
 		setTasks((prev) =>
-			prev.map((t) => (t.id === updatedTask.id) ? updatedTask : t)
+			prev.map((t) => (t.id === id ? { ...t, completed: nextCompletedState } : t))
+		);
+		// 2. Persistência no SQLite
+		try {
+			await updateTaskInDb(id, currentTask.title, nextCompletedState);
+		} catch {
+			AppToast.databaseError();
+		}
+
+		// 3. Chamada à API em segundo plano
+		updateApiTask(id, currentTask.title, nextCompletedState).catch((err) =>
+			AppToast.offlineWarning()
+		);
+	};
+
+	const addTask = async (newTaskData: Omit<Task, 'id'>) => {
+		// 1. Insere primeiro no SQLite para gerar o autoincrement ID
+		try {
+			const newId = await insertTaskInDb(newTaskData.title, newTaskData.completed);
+			const newTask: Task = {
+				id: newId,
+				title: newTaskData.title,
+				completed: newTaskData.completed,
+			};
+
+			setTasks((prev) => [...prev, newTask]);
+
+			setNewestTaskId(newId);
+
+			setTimeout(() => setNewestTaskId(null), 1500);
+
+			// 3. Notifica a API simulada
+			createApiTask(newTask.title, newTask.completed).catch((err) =>
+				AppToast.syncError()
+			).then(() => AppToast.taskCreated(newTask.title));
+		} catch {
+			AppToast.databaseError();
+		}
+
+	};
+
+	const updateTask = async (updatedTask: Task) => {
+		// 1. Atualização Otimista na UI
+		setTasks((prev) =>
+			prev.map((t) => (t.id === updatedTask.id ? updatedTask : t))
 		);
 
-		// TODO: Atualizar no banco de dados local
-		// await db.runAsync('UPDATE tasks SET title = ? WHERE id = ?', ...);
+		// 2. Persistência no SQLite
+		try {
+			await updateTaskInDb(
+				updatedTask.id,
+				updatedTask.title,
+				updatedTask.completed
+			);
+		} catch {
+			AppToast.databaseError();
+		}
+
+		// 3. API Sync
+		updateApiTask(
+			updatedTask.id,
+			updatedTask.title,
+			updatedTask.completed,
+		).catch(() => AppToast.offlineWarning()).then(() => AppToast.taskUpdated());
 	};
 
 	const deleteTask = async (id: number) => {
-		setTasks((prev) =>
-			prev.filter((t) => t.id !== id)
-		);
+		// 1. Atualização Otimista na UI
+		setTasks((prev) => prev.filter((t) => t.id !== id));
 
-		// TODO: Atualizar no banco de dados local
-		// await db.runAsync('DELETE FROM tasks WHERE id = ?', ...);
-	}
+		// 2. Remoção do SQLite
+		try {
+			await deleteTaskInDb(id);
+		} catch {
+			AppToast.databaseError();
+		}
+
+		// 3. API Sync
+		deleteApiTask(id).catch((err) =>
+			AppToast.offlineWarning()
+		).then(() => AppToast.taskDeleted());
+	};
 
 	return (
-		<TasksContext.Provider value={{ tasks, newestTaskId, toggleTask, addTask, updateTask, deleteTask }}>
+		<TasksContext.Provider
+			value={{
+				tasks,
+				databaseLoading,
+				setDatabaseLoading,
+				getTasks,
+				newestTaskId,
+				toggleTask,
+				addTask,
+				updateTask,
+				deleteTask,
+				fetchInitialData
+			}}
+		>
 			{children}
 		</TasksContext.Provider>
 	);
