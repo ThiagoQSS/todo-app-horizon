@@ -2,6 +2,7 @@ export const Colors = {
 	white: '#FFFFFF',
 	surface: '#f8f9fa',
 	gray: '#6c757d',
+	gray2: '#adb5bd',
 	grayLight: '#ecedf1',
 	grayLight2: '#f8f9fa',
 	grayDark: '#495057',
@@ -11,6 +12,7 @@ export const Colors = {
 	darkOrange: '#78350f',
 	warningPrimary: '#f59e0b',
 	warningBackground: '#fef3c7',
+	dangerRed: '#dc2626',
 	primaryPurple: '#4f46e5',
 };
 
