@@ -11,9 +11,12 @@ import TabSelector from '../components/TabSelector';
 import Animated, { LinearTransition } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import { useTasks } from '../hooks/useTasks';
+import ListaVazia from '../components/ListaVazia';
+
+export type Tab = "Todas" | "Pendentes" | "Concluídas"
 
 export default function index() {
-	const [selectedTab, setSelectedTab] = useState<"Todas" | "Pendentes" | "Concluídas">("Todas");
+	const [selectedTab, setSelectedTab] = useState<Tab>("Todas");
 	const [searchQuery, setSearchQuery] = useState('');
 	const router = useRouter();
 
@@ -48,6 +51,7 @@ export default function index() {
 					renderItem={({ item }) => <TaskCard task={item} isNew={item.id === newestTaskId} onToggle={toggleTask} />}
 					contentContainerStyle={styles.flatlistContent}
 					itemLayoutAnimation={LinearTransition.springify()}
+					ListEmptyComponent={() => <ListaVazia selectedTab={selectedTab} />}
 				/>
 			</View>
 
