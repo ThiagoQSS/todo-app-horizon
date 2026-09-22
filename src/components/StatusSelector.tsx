@@ -32,69 +32,12 @@ const StatusSelector = ({ status, setStatus }: StatusSelectorProps) => {
 export default StatusSelector
 
 const styles = StyleSheet.create({
-	container: {
-		// backgroundColor: 'pink',
-		flex: 1,
-		...pageStyles.hpadding,
-	},
-	innerContainer: {
-		paddingVertical: 20
-	},
-	title: {
-		fontSize: 24
-	},
-	innerRow: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		alignItems: 'center'
-	},
-	titleRow: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		alignItems: 'center',
-		marginTop: 20
-	},
 	optionsRow: {
 		flexDirection: 'row',
 		justifyContent: 'space-between',
 		alignItems: 'center',
 		marginTop: 10,
 		gap: 10,
-	},
-	text: {
-		color: TextColors.secondary,
-		fontSize: 20,
-	},
-	error: {
-		color: Colors.dangerRed,
-		fontSize: 14
-	},
-	textinput: {
-		borderWidth: 1,
-		borderColor: Colors.gray2,
-		borderRadius: 10,
-		paddingHorizontal: 10,
-		fontSize: 15,
-		marginTop: 5,
-		minHeight: 100,
-		textAlignVertical: 'top'
-	},
-	focusedInput: {
-		borderColor: Colors.primaryPurple
-	},
-	inputWarning: {
-		color: Colors.warningPrimary
-	},
-	inputError: {
-		color: Colors.dangerRed,
-	},
-	smalltext: {
-		color: TextColors.tertiary,
-		fontSize: 14,
-		marginTop: 5,
-		textAlign: 'right'
-	},
-	centeredModalContainer: {
 	},
 	buttonOption: {
 		padding: 20,

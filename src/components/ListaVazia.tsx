@@ -5,13 +5,17 @@ import Ionicons from '@react-native-vector-icons/ionicons/static'
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6/static'
 import { Colors, TextColors } from '../constants/Colors'
 
-const ListaVazia = ({ selectedTab }: { selectedTab: Tab }) => {
+const ListaVazia = ({ selectedTab, query }: { selectedTab: Tab, query: string }) => {
 
 	let text;
 
 	if (selectedTab === 'Pendentes') text = 'Nenhuma tarefa pendente';
 	else if (selectedTab === 'Concluídas') text = 'Nenhuma tarefa concluida';
-	else if (selectedTab === 'Todas') text = 'Nenhuma tarefa.\nClique no botão abaixo para adicionar uma tarefa';
+	else if (selectedTab === 'Todas') text = 'Nenhuma tarefa existente';
+
+	if (query.trim() !== '') {
+		text += ' para a pesquisa "' + query + '"';
+	}
 
 	return (
 		<View style={styles.container}>
