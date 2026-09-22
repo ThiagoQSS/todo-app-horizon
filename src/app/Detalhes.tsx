@@ -20,7 +20,7 @@ const Detalhes = () => {
 	const [status, setStatus] = useState<Status>(task?.completed ? 'Concluída' : 'Pendente');
 	const [visible, setVisible] = useState(false);
 	const router = useRouter();
-	const errorMessage = title.length > 100 || title.length < 3 ? 'Título deve ter entre 3 e 100 caracteres' : '';
+	const errorMessage = title.trim().length > 100 || title.trim().length < 3 ? 'Título deve ter entre 3 e 100 caracteres' : '';
 
 	const handleUpdate = () => {
 		if (task) {
