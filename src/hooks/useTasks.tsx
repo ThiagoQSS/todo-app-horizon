@@ -4,7 +4,9 @@ import { DATA } from '../utils/tempData';
 
 type TasksContextType = {
 	tasks: Task[];
-	toggleTask: (id: number | string) => void;
+	newestTaskId: number | null;
+	toggleTask: (id: number) => void;
+	addTask: (task: Task) => void;
 	updateTask: (updatedTask: Task) => void;
 };
 
@@ -12,6 +14,7 @@ const TasksContext = createContext<TasksContextType | undefined>(undefined);
 
 export const TasksProvider = ({ children }: { children: React.ReactNode }) => {
 	const [tasks, setTasks] = useState<Task[]>(DATA);
+	const [newestTaskId, setNewestTaskId] = useState<number | null>(null);
 
 	const toggleTask = async (id: number | string) => {
 		setTasks((prev) =>
@@ -21,6 +24,14 @@ export const TasksProvider = ({ children }: { children: React.ReactNode }) => {
 		// TODO: Atualizar no banco de dados local
 		// await db.runAsync('UPDATE tasks SET completed = ? WHERE id = ?', ...);
 	};
+
+	const addTask = async (task: Task) => {
+		setTasks((prev) => [...prev, task]);
+		setNewestTaskId(task.id);
+		setTimeout(() => setNewestTaskId(null), 1500);
+		// TODO: Atualizar no banco de dados local
+		// await db.runAsync('INSERT INTO tasks (id, title, date, completed) VALUES (?, ?, ?, ?)', ...);
+	}
 
 	const updateTask = async (updatedTask: Task) => {
 		setTasks((prev) =>
@@ -32,7 +43,7 @@ export const TasksProvider = ({ children }: { children: React.ReactNode }) => {
 	};
 
 	return (
-		<TasksContext.Provider value={{ tasks, toggleTask, updateTask }}>
+		<TasksContext.Provider value={{ tasks, newestTaskId, toggleTask, addTask, updateTask }}>
 			{children}
 		</TasksContext.Provider>
 	);

@@ -6,8 +6,10 @@ import { Colors, TextColors } from '../constants/Colors'
 import CustomButton from '../components/CustomButton'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
+import { useTasks } from '../hooks/useTasks'
 
 const NovaTarefa = () => {
+	const { addTask } = useTasks();
 	const [status, setStatus] = useState<'Pendente' | 'Concluída'>('Pendente');
 	const [title, setTitle] = useState('');
 	const [focused, setFocused] = useState(false);
@@ -16,6 +18,11 @@ const NovaTarefa = () => {
 		title.length > 100 || title.length < 3
 			? 'Título deve ter entre 3 e 100 caracteres'
 			: '';
+
+	const handleFinish = () => {
+		addTask({ id: Date.now(), title, completed: status === 'Concluída' });
+		router.back();
+	}
 
 	return (
 		<KeyboardAvoidingView
@@ -69,7 +76,7 @@ const NovaTarefa = () => {
 
 				<CustomButton
 					title='Criar Tarefa'
-					onPress={() => router.back()}
+					onPress={handleFinish}
 					style={{ marginTop: 20 }}
 					disabled={title.length < 3 || title.length > 100}
 				/>

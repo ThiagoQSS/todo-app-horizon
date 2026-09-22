@@ -17,7 +17,11 @@ export default function index() {
 	const [searchQuery, setSearchQuery] = useState('');
 	const router = useRouter();
 
-	const { tasks, toggleTask } = useTasks();
+	const { tasks, newestTaskId, toggleTask } = useTasks();
+	const filteredTasks = searchFilteredData(
+		tabFilteredData(tasks, selectedTab),
+		searchQuery
+	);
 
 	return (
 		<View style={styles.container}>
@@ -39,9 +43,9 @@ export default function index() {
 
 			<View style={styles.flatlistContainer}>
 				<Animated.FlatList
-					data={searchFilteredData(tabFilteredData(tasks, selectedTab), searchQuery)}
+					data={filteredTasks.toReversed()}
 					keyExtractor={(item) => `${item.id}`}
-					renderItem={({ item }) => <TaskCard task={item} onToggle={toggleTask} />}
+					renderItem={({ item }) => <TaskCard task={item} isNew={item.id === newestTaskId} onToggle={toggleTask} />}
 					contentContainerStyle={styles.flatlistContent}
 					itemLayoutAnimation={LinearTransition.springify()}
 				/>
