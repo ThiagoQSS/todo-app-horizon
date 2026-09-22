@@ -1,17 +1,9 @@
 import { Stack } from 'expo-router';
-import { useEffect } from 'react';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { TasksProvider } from '../hooks/useTasks';
+import Toast from 'react-native-toast-message';
 
 export default function RootLayout() {
-	useEffect(() => {
-		const initialize = async () => {
-			console.log('INICIALIZAR BANCO AQUI');
-		};
-
-		initialize();
-	}, []);
-
 	return (
 		<KeyboardProvider>
 			<TasksProvider>
@@ -36,6 +28,7 @@ export default function RootLayout() {
 						}}
 					/>
 				</Stack>
+				<Toast />
 			</TasksProvider>
 		</KeyboardProvider>
 	);
