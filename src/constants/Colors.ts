@@ -13,6 +13,7 @@ export const Colors = {
 	warningPrimary: '#f59e0b',
 	warningBackground: '#fef3c7',
 	dangerRed: '#dc2626',
+	softRed: '#ffc4c4',
 	primaryPurple: '#4f46e5',
 };
 

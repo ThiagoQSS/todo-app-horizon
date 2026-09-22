@@ -17,7 +17,13 @@ export default function RootLayout() {
 			<TasksProvider>
 				<Stack screenOptions={{ headerShown: false }}>
 					<Stack.Screen name='index' />
-					<Stack.Screen name='Detalhes' />
+					<Stack.Screen
+						name='Detalhes'
+						options={{
+							headerShown: true,
+							headerTitle: 'Detalhes da Tarefa',
+						}}
+					/>
 					<Stack.Screen
 						name='NovaTarefa'
 						options={{

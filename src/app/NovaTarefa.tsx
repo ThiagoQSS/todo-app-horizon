@@ -7,10 +7,12 @@ import CustomButton from '../components/CustomButton'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
 import { useTasks } from '../hooks/useTasks'
+import CustomInput from '../components/CustomInput'
+import StatusSelector, { Status } from '../components/StatusSelector'
 
 const NovaTarefa = () => {
 	const { addTask } = useTasks();
-	const [status, setStatus] = useState<'Pendente' | 'Concluída'>('Pendente');
+	const [status, setStatus] = useState<Status>('Pendente');
 	const [title, setTitle] = useState('');
 	const [focused, setFocused] = useState(false);
 	const router = useRouter();
@@ -36,43 +38,21 @@ const NovaTarefa = () => {
 					<Ionicons name='close-circle-sharp' size={30} color={Colors.gray} onPress={() => router.back()} />
 				</View>
 
-				<View style={styles.titleRow}>
-					<Text style={styles.text}>Título *</Text>
-					<Text style={styles.error}>{errorMessage}</Text>
-				</View>
-				<TextInput
-					style={[styles.textinput, focused && styles.focusedInput]}
+				<CustomInput
+					title='Título *'
 					placeholder='Descreva sua tarefa...'
-					placeholderTextColor={Colors.gray2}
-					onFocus={() => setFocused(true)}
-					onBlur={() => setFocused(false)}
 					value={title}
-					onChangeText={(text) => setTitle(text.substring(0, 100))}
-					multiline
+					setValue={(value) => setTitle(value.substring(0, 100))}
+					focused={focused}
+					setFocused={setFocused}
+					errorMessage={errorMessage}
 				/>
-				<Text style={[
-					styles.smalltext,
-					title.length >= 70 && styles.inputWarning,
-					title.length === 100 && styles.inputError,
-				]}>{100 - title.length} restantes</Text>
 
 				<Text style={styles.text}>Status inicial</Text>
-
-				<View style={styles.optionsRow}>
-					<TouchableOpacity
-						style={[styles.buttonOption, status === 'Pendente' && styles.pendenteSelected]}
-						onPress={() => setStatus('Pendente')}
-					>
-						<Text style={status === 'Pendente' && styles.pendenteSelected}>Pendente</Text>
-					</TouchableOpacity>
-
-					<TouchableOpacity
-						style={[styles.buttonOption, status === 'Concluída' && styles.concluidaSelected]}
-						onPress={() => setStatus('Concluída')}
-					>
-						<Text style={status === 'Concluída' && styles.concluidaSelected}>Concluída</Text>
-					</TouchableOpacity>
-				</View>
+				<StatusSelector
+					status={status}
+					setStatus={setStatus}
+				/>
 
 				<CustomButton
 					title='Criar Tarefa'

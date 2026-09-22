@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
 		width: '47%',
 	},
 	negative: {
-		backgroundColor: Colors.warningBackground,
+		backgroundColor: Colors.softRed,
 	},
 	positive: {
 		backgroundColor: Colors.successBackground,
