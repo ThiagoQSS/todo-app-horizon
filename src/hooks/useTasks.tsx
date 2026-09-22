@@ -9,6 +9,7 @@ import {
 	deleteApiTask,
 } from '../services/tasksService';
 import { AppToast } from '../utils/ToastManager';
+import Toast from 'react-native-toast-message';
 
 type TasksContextType = {
 	tasks: Task[];
@@ -49,15 +50,21 @@ export const TasksProvider = ({ children }: { children: React.ReactNode }) => {
 			setTasks(tasks);
 			return tasks;
 		} else {
-			const tasks = await fetchInitialTasks();
-			if (tasks.length > 0) {
-				setTasks(tasks);
-				await insertTaskBatchInDb(tasks);
-				await markAsSeeded();
-			} else {
-				AppToast.offlineWarning();
+			try {
+				const tasks = await fetchInitialTasks();
+				if (tasks.length > 0) {
+					setTasks(tasks);
+					await insertTaskBatchInDb(tasks);
+					await markAsSeeded();
+				} else {
+					AppToast.offlineWarning();
+				}
+				return tasks;
+			} catch (e) {
+				console.warn(e);
+				Toast.show({ text1: "Erro ao inicializar", text2: "Algo deu errado ao inicializar as tarefas." });
+				return [];
 			}
-			return tasks;
 		};
 	}
 
@@ -79,14 +86,13 @@ export const TasksProvider = ({ children }: { children: React.ReactNode }) => {
 		// 2. Persistência no SQLite
 		try {
 			await updateTaskInDb(id, currentTask.title, nextCompletedState);
-		} catch {
+		} catch (e) {
+			console.warn(e);
 			AppToast.databaseError();
 		}
 
 		// 3. Chamada à API em segundo plano
-		updateApiTask(id, currentTask.title, nextCompletedState).catch((err) =>
-			AppToast.offlineWarning()
-		);
+		updateApiTask(id, currentTask.title, nextCompletedState).catch(() => { });
 	};
 
 	const addTask = async (newTaskData: Omit<Task, 'id'>) => {
@@ -109,7 +115,8 @@ export const TasksProvider = ({ children }: { children: React.ReactNode }) => {
 			createApiTask(newTask.title, newTask.completed).catch((err) =>
 				AppToast.syncError()
 			).then(() => AppToast.taskCreated(newTask.title));
-		} catch {
+		} catch (e) {
+			console.warn(e);
 			AppToast.databaseError();
 		}
 
@@ -128,7 +135,8 @@ export const TasksProvider = ({ children }: { children: React.ReactNode }) => {
 				updatedTask.title,
 				updatedTask.completed
 			);
-		} catch {
+		} catch (e) {
+			console.warn(e);
 			AppToast.databaseError();
 		}
 
@@ -147,7 +155,8 @@ export const TasksProvider = ({ children }: { children: React.ReactNode }) => {
 		// 2. Remoção do SQLite
 		try {
 			await deleteTaskInDb(id);
-		} catch {
+		} catch (e) {
+			console.warn(e);
 			AppToast.databaseError();
 		}
 
