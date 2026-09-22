@@ -8,6 +8,7 @@ type TasksContextType = {
 	toggleTask: (id: number) => void;
 	addTask: (task: Task) => void;
 	updateTask: (updatedTask: Task) => void;
+	deleteTask: (id: number) => void;
 };
 
 const TasksContext = createContext<TasksContextType | undefined>(undefined);
@@ -42,8 +43,17 @@ export const TasksProvider = ({ children }: { children: React.ReactNode }) => {
 		// await db.runAsync('UPDATE tasks SET title = ? WHERE id = ?', ...);
 	};
 
+	const deleteTask = async (id: number) => {
+		setTasks((prev) =>
+			prev.filter((t) => t.id !== id)
+		);
+
+		// TODO: Atualizar no banco de dados local
+		// await db.runAsync('DELETE FROM tasks WHERE id = ?', ...);
+	}
+
 	return (
-		<TasksContext.Provider value={{ tasks, newestTaskId, toggleTask, addTask, updateTask }}>
+		<TasksContext.Provider value={{ tasks, newestTaskId, toggleTask, addTask, updateTask, deleteTask }}>
 			{children}
 		</TasksContext.Provider>
 	);

@@ -34,7 +34,7 @@ const TaskCard = ({ task, onToggle, isNew }: TaskCardProps) => {
 			withTiming(1.15, { duration: 150 }),
 			withTiming(1, { duration: 150 })
 		);
-		borderProgress.value = withTiming(1, { duration: 600 });
+		borderProgress.value = withTiming(1, { duration: 1200 });
 
 	}, [isNew]);
 

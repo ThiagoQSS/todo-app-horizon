@@ -1,4 +1,4 @@
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, TextColors } from '../constants/Colors';
 import { pageStyles } from '../constants/commomStyles';
@@ -7,17 +7,35 @@ import CustomInput from '../components/CustomInput';
 import StatusSelector, { Status } from '../components/StatusSelector';
 import CustomButton from '../components/CustomButton';
 import { useTasks } from '../hooks/useTasks';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import ConfirmationModal from '../components/ConfirmationModal';
 
 const Detalhes = () => {
-	const [title, setTitle] = useState('');
+	const { id } = useLocalSearchParams<{ id: string }>();
+	const { tasks, updateTask, deleteTask } = useTasks();
+	const task = tasks.find((t) => t.id === Number(id));
+
+	const [title, setTitle] = useState(task?.title || '');
 	const [focused, setFocused] = useState(false);
-	const [status, setStatus] = useState<Status>('Pendente');
+	const [status, setStatus] = useState<Status>(task?.completed ? 'Concluída' : 'Pendente');
+	const [visible, setVisible] = useState(false);
+	const router = useRouter();
 	const errorMessage = title.length > 100 || title.length < 3 ? 'Título deve ter entre 3 e 100 caracteres' : '';
 
-	const { updateTask } = useTasks();
-
 	const handleUpdate = () => {
+		if (task) {
+			updateTask({ ...task, title, completed: status === 'Concluída' });
+			router.back();
+		}
+	}
 
+	const handleDelete = () => {
+		if (task) {
+			deleteTask(task.id);
+			router.back();
+		} else {
+			Alert.alert("Erro", "Tarefa não encontrada");
+		}
 	}
 
 	return (
@@ -32,7 +50,7 @@ const Detalhes = () => {
 				errorMessage={errorMessage}
 			/>
 
-			<Text style={styles.text}>Status inicial</Text>
+			<Text style={styles.text}>Status atual</Text>
 			<StatusSelector
 				status={status}
 				setStatus={setStatus}
@@ -40,8 +58,14 @@ const Detalhes = () => {
 
 			<View style={styles.buttonsContainer}>
 				<CustomButton title='Salvar Alterações' onPress={handleUpdate} color={Colors.primaryPurple} disabled={errorMessage !== ''} />
-				<CustomButton title='Excluir Tarefa' negative onPress={() => { }} textStyle={{ color: Colors.dangerRed }} />
+				<CustomButton title='Excluir Tarefa' negative onPress={() => setVisible(true)} textStyle={{ color: Colors.dangerRed }} />
 			</View>
+
+			<ConfirmationModal
+				visible={visible}
+				onCancel={() => setVisible(false)}
+				onConfirm={handleDelete}
+			/>
 		</SafeAreaView>
 	);
 };
