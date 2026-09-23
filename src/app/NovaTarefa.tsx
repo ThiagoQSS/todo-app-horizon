@@ -9,6 +9,7 @@ import { useRouter } from 'expo-router'
 import { useTasks } from '../hooks/useTasks'
 import CustomInput from '../components/CustomInput'
 import StatusSelector, { Status } from '../components/StatusSelector'
+import { validateTaskTitle } from '../utils/taskValidation'
 
 const NovaTarefa = () => {
 	const { addTask } = useTasks();
@@ -16,13 +17,11 @@ const NovaTarefa = () => {
 	const [title, setTitle] = useState('');
 	const [focused, setFocused] = useState(false);
 	const router = useRouter();
-	const errorMessage =
-		title.trim().length > 100 || title.trim().length < 3
-			? 'Título deve ter entre 3 e 100 caracteres'
-			: '';
+	const { isValid, errorMessage } = validateTaskTitle(title);
 
 	const handleFinish = () => {
-		addTask({ id: Date.now(), title, completed: status === 'Concluída' });
+		if (!isValid) return;
+		addTask({ id: Date.now(), title: title.trim(), completed: status === 'Concluída' });
 		router.back();
 	}
 
@@ -58,7 +57,7 @@ const NovaTarefa = () => {
 					title='Criar Tarefa'
 					onPress={handleFinish}
 					style={{ marginTop: 20 }}
-					disabled={title.length < 3 || title.length > 100}
+					disabled={!isValid}
 				/>
 			</SafeAreaView>
 		</KeyboardAvoidingView>

@@ -9,6 +9,7 @@ import CustomButton from '../components/CustomButton';
 import { useTasks } from '../hooks/useTasks';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import ConfirmationModal from '../components/ConfirmationModal';
+import { validateTaskTitle } from '../utils/taskValidation';
 
 const Detalhes = () => {
 	const { id } = useLocalSearchParams<{ id: string }>();
@@ -20,11 +21,12 @@ const Detalhes = () => {
 	const [status, setStatus] = useState<Status>(task?.completed ? 'Concluída' : 'Pendente');
 	const [visible, setVisible] = useState(false);
 	const router = useRouter();
-	const errorMessage = title.trim().length > 100 || title.trim().length < 3 ? 'Título deve ter entre 3 e 100 caracteres' : '';
+	const { isValid, errorMessage } = validateTaskTitle(title);
 
 	const handleUpdate = () => {
+		if (!isValid) return;
 		if (task) {
-			updateTask({ ...task, title, completed: status === 'Concluída' });
+			updateTask({ ...task, title: title.trim(), completed: status === 'Concluída' });
 			router.back();
 		}
 	}
@@ -57,7 +59,7 @@ const Detalhes = () => {
 			/>
 
 			<View style={styles.buttonsContainer}>
-				<CustomButton title='Salvar Alterações' onPress={handleUpdate} color={Colors.primaryPurple} disabled={errorMessage !== ''} />
+				<CustomButton title='Salvar Alterações' onPress={handleUpdate} color={Colors.primaryPurple} disabled={!isValid} />
 				<CustomButton title='Excluir Tarefa' negative onPress={() => setVisible(true)} textStyle={{ color: Colors.dangerRed }} />
 			</View>
 
