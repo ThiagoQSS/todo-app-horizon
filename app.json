@@ -32,6 +32,12 @@
       "expo-sqlite",
       "@react-native-vector-icons/ant-design",
       "@react-native-vector-icons/fontawesome6"
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "0963d5b5-5e4e-45af-a28f-00edd39c0260"
+      }
+    }
   }
 }
